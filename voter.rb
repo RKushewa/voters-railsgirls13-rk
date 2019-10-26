@@ -1,6 +1,6 @@
 require 'sinatra'
 
-votes = {}
+require 'yaml/store'
 
 get '/' do
   @title = 'Добре дошли в машината за гласуване!'
@@ -11,13 +11,23 @@ get '/cast' do
   @title = 'Благодарим за вашия глас!'
   @vote  = params['vote']
   
-  votes[@vote] = votes.fetch(@vote, 0) + 1
+  @store = YAML::Store.new 'votes.yml'
+  @store.transaction do
+    if @store['votes'] == nil
+      @store['votes'] = {}
+    end
+
+    @store['votes'][@vote] = @store['votes'].fetch(@vote, 0) + 1
+  end
   
   erb :cast
 end
 
 get '/results' do
-  @title = 'Резултати'
-  @votes = votes
+  @title = 'Results so far:'
+
+  @store = YAML::Store.new 'votes.yml'
+  @votes = @store.transaction { @store['votes'] }
+
   erb :results
 end
