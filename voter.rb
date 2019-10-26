@@ -20,6 +20,9 @@ get '/cast' do
     @store['votes'][@vote] = @store['votes'].fetch(@vote, 0) + 1
   end
   
+  uri = URI.parse(URI.escape("/results?vote=#{@vote}"))
+  redirect uri
+  
   erb :cast
 end
 
@@ -28,6 +31,7 @@ get '/results' do
 
   @store = YAML::Store.new 'votes.yml'
   @votes = @store.transaction { @store['votes'] }
-
+  @vote = params['vote']
+  
   erb :results
 end
